@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEAMOPS — ONE TEAM, CLEAR PRIORITIES</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for the 3D Minecraft-Style Block Arena -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Google Fonts: Fredoka (playful arcade display) & Inter (clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        display: ['Fredoka', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        pista: {
+                            50: '#F2FDF7',
+                            100: '#DFFCEB',
+                            200: '#BDF7D6',
+                            300: '#93E9BE',
+                            400: '#5ED99E',
+                            500: '#22C55E',
+                            600: '#16A34A',
+                        },
+                        opsblue: {
+                            50: '#EFF6FF',
+                            100: '#DBEAFE',
+                            400: '#60A5FA',
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                        },
+                        opspink: {
+                            50: '#FDF2F8',
+                            100: '#FCE7F3',
+                            400: '#F472B6',
+                            500: '#EC4899',
+                            600: '#DB2777',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at 12% 15%, rgba(147, 233, 190, 0.55) 0%, transparent 45%),
+                           radial-gradient(circle at 88% 18%, rgba(59, 130, 246, 0.25) 0%, transparent 45%),
+                           radial-gradient(circle at 75% 85%, rgba(236, 72, 153, 0.25) 0%, transparent 45%),
+                           linear-gradient(135deg, #F4FDF8 0%, #FFFFFF 50%, #F0F7FF 100%);
+            --card-bg: rgba(255, 255, 255, 0.92);
+            --card-border: #93E9BE;
+            --text-main: #0F172A;
+            --text-sub: #475569;
+            --glow-shadow: 0 14px 35px -8px rgba(34, 197, 94, 0.22), 0 8px 20px -6px rgba(59, 130, 246, 0.16);
+        }
+
+        /* Theme 2: Cyber Blue & Pink */
+        body.theme-cyber {
+            --bg-gradient: radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.35) 0%, transparent 48%),
+                           radial-gradient(circle at 85% 20%, rgba(236, 72, 153, 0.35) 0%, transparent 48%),
+                           radial-gradient(circle at 50% 90%, rgba(147, 233, 190, 0.45) 0%, transparent 50%),
+                           linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 48%, #FDF2F8 100%);
+            --card-bg: rgba(255, 255, 255, 0.94);
+            --card-border: #60A5FA;
+            --glow-shadow: 0 14px 35px -8px rgba(59, 130, 246, 0.28), 0 8px 20px -6px rgba(236, 72, 153, 0.22);
+        }
+
+        /* Theme 3: Neon Arcade */
+        body.theme-arcade {
+            --bg-gradient: radial-gradient(circle at 18% 15%, rgba(236, 72, 153, 0.32) 0%, transparent 45%),
+                           radial-gradient(circle at 82% 25%, rgba(147, 233, 190, 0.5) 0%, transparent 48%),
+                           radial-gradient(circle at 30% 85%, rgba(59, 130, 246, 0.32) 0%, transparent 48%),
+                           linear-gradient(135deg, #FDF2F8 0%, #FFFFFF 50%, #F2FDF7 100%);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --card-border: #F472B6;
+            --glow-shadow: 0 14px 35px -8px rgba(236, 72, 153, 0.28), 0 8px 20px -6px rgba(34, 197, 94, 0.22);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            transition: background 0.45s ease;
+            overflow-x: hidden;
+        }
+
+        /* Vibrant Arcade Glass Card */
+        .vibrant-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 2.5px solid var(--card-border);
+            box-shadow: var(--glow-shadow);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.3s ease;
+        }
+
+        .vibrant-card:hover {
+            transform: translateY(-4px);
+        }
+
+        /* Bubbly 3D Arcade Buttons */
+        .arcade-btn {
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease, filter 0.2s ease;
+            box-shadow: 0 5px 0 rgba(15, 23, 42, 0.16);
+        }
+        .arcade-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+        }
+        .arcade-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.16);
+        }
+
+        /* Floating Background Shapes */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-18px) rotate(8deg); }
+        }
+        @keyframes floatReverse {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(16px) rotate(-8deg); }
+        }
+        .float-1 { animation: floatSlow 6s ease-in-out infinite; }
+        .float-2 { animation: floatReverse 7.5s ease-in-out infinite; }
+        .float-3 { animation: floatSlow 8.5s ease-in-out infinite; }
+
+        /* Pulse Glow for WhatsApp Callout */
+        @keyframes pulseRing {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45); }
+            70% { box-shadow: 0 0 0 14px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .whatsapp-pulse {
+            animation: pulseRing 2.2s infinite;
+        }
+
+        /* Editable Field Hover Cue */
+        [contenteditable="true"]:hover {
+            background-color: rgba(147, 233, 190, 0.25);
+            border-radius: 8px;
+            outline: 2px dashed #22C55E;
+            outline-offset: 2px;
+        }
+        [contenteditable="true"]:focus {
+            background-color: #FFFFFF;
+            border-radius: 8px;
+            outline: 2px solid #3B82F6;
+            outline-offset: 2px;
+        }
+
+        /* 3D Arena Canvas & Focus Mode */
+        #arena-wrapper.focus-mode {
+            position: fixed;
+            inset: 0;
+            z-index: 60;
+            border-radius: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #FFFFFF;
+        }
+        #arena-wrapper.focus-mode #three-container {
+            flex: 1;
+            height: auto !important;
+        }
+        #three-container canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+            cursor: crosshair;
+        }
+
+        /* Confetti Particle Animation */
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti-piece {
+            position: fixed;
+            top: 0;
+            width: 11px;
+            height: 11px;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 100;
+            animation: confettiFall 2.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-pista-300 selection:text-slate-900">
+
+    <!-- Floating Vibrant Geometric Shapes in Background -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10" aria-hidden="true">
+        <div class="float-1 absolute top-20 left-6 w-20 h-20 rounded-3xl bg-pista-300/40 border-2 border-pista-400/50 rotate-12"></div>
+        <div class="float-2 absolute top-40 right-10 w-16 h-16 rounded-full bg-opsblue-400/25 border-2 border-opsblue-400/40"></div>
+        <div class="float-3 absolute bottom-32 left-12 w-24 h-24 rounded-full bg-opspink-400/20 border-2 border-opspink-400/35"></div>
+        <div class="float-1 absolute bottom-20 right-16 w-20 h-20 rounded-2xl bg-pista-400/30 border-2 border-pista-500/40 -rotate-12"></div>
+    </div>
+
+    <!-- Custom Toast Notification Box (Replaces alert) -->
+    <div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl border-2 border-pista-300 flex items-center gap-3 font-display font-semibold text-sm sm:text-base">
+            <span id="toast-icon" class="text-xl">⚡</span>
+            <span id="toast-msg">TEAMOPS Ready!</span>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         TOP STICKY HEADER & VIBE SWITCHER
+         ===================================================================== -->
+    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b-2 border-pista-300 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Custom SVG Geometric TEAMOPS Logo -->
+            <a href="#" class="flex items-center gap-3 group" onclick="playTone(520, 0.08)">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-pista-400 via-opsblue-500 to-opspink-500 p-0.5 shadow-md group-hover:scale-105 transition">
+                    <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                        <!-- Custom TEAMOPS Emblem SVG -->
+                        <svg class="w-7 h-7" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="20,3 35,11.5 35,28.5 20,37 5,28.5 5,11.5" fill="#93E9BE" stroke="#2563EB" stroke-width="2.5"/>
+                            <path d="M12 14H28M20 14V28" stroke="#0F172A" stroke-width="3.5" stroke-linecap="round"/>
+                            <circle cx="20" cy="20" r="4.5" fill="#EC4899" stroke="#FFFFFF" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-display font-bold text-2xl tracking-tight leading-none text-slate-900">
+                        TEAM<span class="text-opsblue-600">OPS</span>
+                    </div>
+                    <span class="text-[10px] sm:text-xs font-extrabold tracking-widest uppercase text-opspink-600">
+                        ONE TEAM, CLEAR PRIORITIES
+                    </span>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-5 font-display font-semibold text-sm text-slate-700">
+                <a href="#portals" class="hover:text-opsblue-600 transition">📞 WhatsApp & Portal</a>
+                <a href="#squad" class="hover:text-pista-600 transition">🛡️ Squad</a>
+                <a href="#hype" class="hover:text-opspink-600 transition">🔥 Hype Board</a>
+                <a href="#lock-key" class="hover:text-opsblue-600 transition">🔐 Lock & Key</a>
+                <a href="#arena" class="px-3.5 py-1.5 rounded-xl bg-pista-200 text-slate-900 hover:bg-pista-300 transition">🧱 3D Arena</a>
+            </nav>
+
+            <!-- Live Theme Vibe Switcher & Sound Toggle -->
+            <div class="flex items-center gap-2">
+                <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200" title="Switch Theme Vibe">
+                    <button onclick="setTheme('pista', this)" class="theme-btn active px-2.5 py-1 rounded-xl text-xs font-display font-bold bg-pista-300 text-slate-900 shadow-sm transition">
+                        🌿 Pista
+                    </button>
+                    <button onclick="setTheme('cyber', this)" class="theme-btn px-2.5 py-1 rounded-xl text-xs font-display font-bold text-slate-600 hover:text-opsblue-600 transition">
+                        💙 Cyber
+                    </button>
+                    <button onclick="setTheme('arcade', this)" class="theme-btn px-2.5 py-1 rounded-xl text-xs font-display font-bold text-slate-600 hover:text-opspink-600 transition">
+                        💖 Arcade
+                    </button>
+                </div>
+
+                <button id="sound-toggle" onclick="toggleSound()" class="p-2 rounded-xl bg-white border-2 border-pista-300 hover:bg-pista-50 text-slate-800 text-sm font-bold shadow-sm transition" title="Toggle Arcade Sound Effects">
+                    🔊
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-20 space-y-16">
+
+        <!-- =====================================================================
+             1. HERO SECTION: VIBRANT TEAMOPS BANNER + WHATSAPP CALLOUT
+             ===================================================================== -->
+        <section class="relative">
+            <div class="vibrant-card rounded-[2rem] p-6 sm:p-12 text-center relative overflow-hidden">
+                <!-- Decorative Top Gradient Strip -->
+                <div class="absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r from-pista-400 via-opsblue-500 to-opspink-500"></div>
+
+                <!-- Large Custom TEAMOPS Emblem Badge -->
+                <div class="inline-flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-pista-300 via-white to-opsblue-100 border-4 border-pista-400 shadow-xl mb-5 transform hover:rotate-6 transition">
+                    <svg class="w-16 h-16 sm:w-20 sm:h-20" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <polygon points="32,4 58,18 58,46 32,60 6,46 6,18" fill="#93E9BE" stroke="#2563EB" stroke-width="3.5"/>
+                        <polygon points="32,11 51,21.5 51,42.5 32,53 13,42.5 13,21.5" fill="#FFFFFF" stroke="#EC4899" stroke-width="2"/>
+                        <path d="M20 23H44M32 23V44" stroke="#0F172A" stroke-width="5" stroke-linecap="round"/>
+                        <circle cx="32" cy="32" r="6" fill="#3B82F6" stroke="#FFFFFF" stroke-width="2"/>
+                    </svg>
+                </div>
+
+                <!-- Tagline Pill -->
+                <div class="mb-3">
+                    <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-pista-200 via-opsblue-100 to-opspink-100 border-2 border-pista-400 font-display font-bold text-xs sm:text-sm tracking-wider uppercase text-slate-900 shadow-sm">
+                        <span>⚡</span> ONE TEAM, CLEAR PRIORITIES <span>⚡</span>
+                    </span>
+                </div>
+
+                <!-- Main Title -->
+                <h1 class="font-display font-bold text-4xl sm:text-6xl lg:text-7xl tracking-tight text-slate-900 mb-4">
+                    WELCOME TO <span class="bg-gradient-to-r from-pista-600 via-opsblue-600 to-opspink-600 bg-clip-text text-transparent">TEAMOPS</span>
+                </h1>
+
+                <!-- Mission Overview -->
+                <p class="max-w-2xl mx-auto text-slate-600 text-base sm:text-lg font-medium leading-relaxed mb-7">
+                    Our official headquarters for high-energy <span class="font-bold text-pista-600">Operations</span>, epic <span class="font-bold text-opsblue-600">Wars</span>, priority <span class="font-bold text-opspink-600">Tasks</span>, and team games like <span class="font-bold text-slate-900 underline decoration-pista-400 decoration-4">Lock and Key</span>!
+                </p>
+
+                <!-- Prominent WhatsApp Callout Badge -->
+                <div class="mb-8">
+                    <a href="https://wa.me/919370555921" target="_blank" rel="noopener noreferrer" onclick="playTone(660, 0.12)"
+                        class="whatsapp-pulse inline-flex flex-wrap items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-pista-100 hover:bg-pista-200 border-2 border-pista-500 text-slate-900 font-display font-bold text-base sm:text-lg shadow-md transition">
+                        <span class="text-2xl">📞</span>
+                        <span>Call on WhatsApp: <span class="text-pista-600 underline">9370555921</span></span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-pista-500 text-white text-xs uppercase tracking-wider">Live Line</span>
+                    </a>
+                </div>
+
+                <!-- Primary Hero Action Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-3.5 sm:gap-4">
+                    <a href="https://wa.me/919370555921" target="_blank" rel="noopener noreferrer" onclick="playTone(620, 0.1)"
+                        class="arcade-btn bg-gradient-to-r from-pista-500 to-opsblue-600 text-white font-display font-bold text-base sm:text-lg px-7 py-3.5 rounded-2xl flex items-center gap-2">
+                        <span>💬</span> Call / Chat on WhatsApp
+                    </a>
+                    <a href="#arena" onclick="playTone(740, 0.1)"
+                        class="arcade-btn bg-gradient-to-r from-opspink-500 to-opsblue-500 text-white font-display font-bold text-base sm:text-lg px-7 py-3.5 rounded-2xl flex items-center gap-2">
+                        <span>🧱</span> Play 3D Block Arena
+                    </a>
+                    <a href="#lock-key" onclick="playTone(580, 0.1)"
+                        class="arcade-btn bg-white border-2 border-pista-400 text-slate-900 font-display font-bold text-base sm:text-lg px-6 py-3.5 rounded-2xl flex items-center gap-2">
+                        <span>🔐</span> Lock & Key Vault
+                    </a>
+                </div>
+
+                <!-- Mission Pillars Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-10 pt-8 border-t-2 border-pista-200">
+                    <div class="bg-pista-50 border-2 border-pista-300 rounded-2xl p-3.5">
+                        <div class="text-2xl mb-1">🎯</div>
+                        <div class="font-display font-bold text-slate-900 text-sm sm:text-base">Operations</div>
+                        <div class="text-xs text-slate-500 font-medium">Coordinated Missions</div>
+                    </div>
+                    <div class="bg-opsblue-50 border-2 border-opsblue-400/50 rounded-2xl p-3.5">
+                        <div class="text-2xl mb-1">⚔️</div>
+                        <div class="font-display font-bold text-slate-900 text-sm sm:text-base">Team Wars</div>
+                        <div class="text-xs text-slate-500 font-medium">Squad Battles & Strategy</div>
+                    </div>
+                    <div class="bg-opspink-50 border-2 border-opspink-400/50 rounded-2xl p-3.5">
+                        <div class="text-2xl mb-1">📋</div>
+                        <div class="font-display font-bold text-slate-900 text-sm sm:text-base">Priority Tasks</div>
+                        <div class="text-xs text-slate-500 font-medium">Clear Goals, Fast Wins</div>
+                    </div>
+                    <div class="bg-white border-2 border-pista-400 rounded-2xl p-3.5">
+                        <div class="text-2xl mb-1">🔑</div>
+                        <div class="font-display font-bold text-slate-900 text-sm sm:text-base">Lock & Key</div>
+                        <div class="text-xs text-slate-500 font-medium">Team Puzzle & Arena</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             2. WHATSAPP COMMAND CARD & TEAMOPS WEBSITE PORTAL
+             ===================================================================== -->
+        <section id="portals" class="space-y-6">
+            <div class="text-center">
+                <span class="px-3.5 py-1 rounded-full bg-opsblue-100 text-opsblue-600 font-display font-bold text-xs uppercase tracking-wider">
+                    Direct Team Access
+                </span>
+                <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900 mt-2">
+                    TEAMOPS Command Portals
+                </h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    Connect with the leader on WhatsApp or jump straight to our official TEAMOPS website.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Card 1: WhatsApp Command Card -->
+                <div class="vibrant-card rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between">
+                    <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-pista-300/35 pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between gap-3 mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-pista-200 border-2 border-pista-500 flex items-center justify-center text-3xl shadow-sm">
+                                📞
+                            </div>
+                            <button onclick="copyWhatsAppNumber()"
+                                class="arcade-btn px-4 py-2 rounded-xl bg-pista-100 hover:bg-pista-200 border-2 border-pista-400 text-slate-900 font-display font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                                <span>📋</span> Copy Number
+                            </button>
+                        </div>
+
+                        <h3 class="font-display font-bold text-2xl sm:text-3xl text-slate-900 mb-2">
+                            Call on WhatsApp: <span class="text-pista-600">9370555921</span>
+                        </h3>
+                        <p class="text-slate-600 text-sm sm:text-base mb-5">
+                            Ready for ops, wars, or priority tasks? Tap below to call or message TEAMOPS directly on WhatsApp!
+                        </p>
+
+                        <div class="bg-pista-50 border-2 border-pista-400 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between">
+                            <span class="font-mono font-extrabold text-base sm:text-lg text-slate-900">📱 +91 9370555921</span>
+                            <span class="text-xs font-display font-bold px-2.5 py-1 rounded-lg bg-pista-300 text-slate-900">WHATSAPP</span>
+                        </div>
+                    </div>
+
+                    <a href="https://wa.me/919370555921" target="_blank" rel="noopener noreferrer" onclick="playTone(680, 0.12)"
+                        class="arcade-btn w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-pista-500 to-opsblue-600 text-white font-display font-bold text-base sm:text-lg flex items-center justify-center gap-2">
+                        <span>💬</span> Call / Chat on WhatsApp
+                    </a>
+                </div>
+
+                <!-- Card 2: TEAMOPS Website Portal (Editable URL) -->
+                <div class="vibrant-card rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col justify-between" style="border-color: #60A5FA;">
+                    <div class="absolute -right-8 -top-8 w-36 h-36 rounded-full bg-opspink-400/20 pointer-events-none"></div>
+                    <div>
+                        <div class="flex items-center justify-between gap-3 mb-5">
+                            <div class="w-14 h-14 rounded-2xl bg-opsblue-100 border-2 border-opsblue-500 flex items-center justify-center text-3xl shadow-sm">
+                                🌐
+                            </div>
+                            <button onclick="toggleEditWebsiteUrl()" id="edit-url-btn"
+                                class="arcade-btn px-4 py-2 rounded-xl bg-opspink-100 hover:bg-opspink-200 border-2 border-opspink-400 text-slate-900 font-display font-bold text-xs sm:text-sm flex items-center gap-1.5">
+                                <span>✏️</span> Edit Website Link
+                            </button>
+                        </div>
+
+                        <h3 class="font-display font-bold text-2xl sm:text-3xl text-slate-900 mb-2">
+                            TEAMOPS Website Portal
+                        </h3>
+                        <p class="text-slate-600 text-sm sm:text-base mb-5">
+                            Launch our main team website, mission board, and shared resources in one click.
+                        </p>
+
+                        <!-- Editable URL Input Panel (Hidden until clicked) -->
+                        <div id="url-editor-box" class="hidden mb-4 bg-opsblue-50 border-2 border-opsblue-400 rounded-2xl p-3 space-y-2">
+                            <label class="block text-xs font-display font-bold text-opsblue-600 uppercase">Paste Your Team Website Link:</label>
+                            <div class="flex gap-2">
+                                <input id="website-url-input" type="url" value="https://teamops.netlify.app" placeholder="https://your-site.com"
+                                    class="flex-1 px-3 py-2 rounded-xl border-2 border-opsblue-400 text-sm font-medium text-slate-900 bg-white focus:outline-none">
+                                <button onclick="saveWebsiteUrl()" class="px-4 py-2 rounded-xl bg-opsblue-600 text-white font-display font-bold text-sm hover:bg-opsblue-500">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-opsblue-50 border-2 border-opsblue-400/60 rounded-2xl px-4 py-3 mb-6 flex items-center justify-between gap-2 overflow-hidden">
+                            <span id="website-url-display" class="font-mono font-bold text-sm sm:text-base text-opsblue-600 truncate">https://teamops.netlify.app</span>
+                            <span class="text-xs font-display font-bold px-2.5 py-1 rounded-lg bg-opspink-100 text-opspink-600 shrink-0">PORTAL</span>
+                        </div>
+                    </div>
+
+                    <a id="website-launch-link" href="https://teamops.netlify.app" target="_blank" rel="noopener noreferrer" onclick="playTone(720, 0.12)"
+                        class="arcade-btn w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-opsblue-600 to-opspink-500 text-white font-display font-bold text-base sm:text-lg flex items-center justify-center gap-2">
+                        <span>🚀</span> Open TEAMOPS Website
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             3. INTERACTIVE TEAMOPS SQUAD ROSTER (CLICK-TO-EDIT)
+             ===================================================================== -->
+        <section id="squad" class="space-y-6">
+            <div class="text-center">
+                <span class="px-3.5 py-1 rounded-full bg-pista-200 text-slate-900 font-display font-bold text-xs uppercase tracking-wider">
+                    ✏️ Click Any Name or Role to Customize
+                </span>
+                <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900 mt-2">
+                    TEAMOPS Squad Roster
+                </h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-1">
+                    Our core players leading operations, wars, tasks, and Lock & Key victories.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <!-- Member 1: Commander -->
+                <div class="vibrant-card rounded-3xl p-5 text-center relative" style="border-color: #22C55E;">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pista-300 to-pista-500 text-white font-display font-bold text-3xl flex items-center justify-center shadow-md mb-3">
+                        👑
+                    </div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-pista-100 text-pista-600 font-display font-bold text-xs uppercase tracking-wider mb-2"
+                        contenteditable="true" onblur="notifySaved()">
+                        Commander
+                    </span>
+                    <h3 class="font-display font-bold text-xl text-slate-900 mb-1"
+                        contenteditable="true" onblur="notifySaved()">
+                        Agent Alpha
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium"
+                        contenteditable="true" onblur="notifySaved()">
+                        Leads operations, war strategy & priority calls.
+                    </p>
+                </div>
+
+                <!-- Member 2: Ops Strategist -->
+                <div class="vibrant-card rounded-3xl p-5 text-center relative" style="border-color: #3B82F6;">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-opsblue-400 to-opsblue-600 text-white font-display font-bold text-3xl flex items-center justify-center shadow-md mb-3">
+                        🧭
+                    </div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-opsblue-100 text-opsblue-600 font-display font-bold text-xs uppercase tracking-wider mb-2"
+                        contenteditable="true" onblur="notifySaved()">
+                        Ops Strategist
+                    </span>
+                    <h3 class="font-display font-bold text-xl text-slate-900 mb-1"
+                        contenteditable="true" onblur="notifySaved()">
+                        Agent Nova
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium"
+                        contenteditable="true" onblur="notifySaved()">
+                        Plans war tactics and keeps every task on track.
+                    </p>
+                </div>
+
+                <!-- Member 3: Lock & Key Master -->
+                <div class="vibrant-card rounded-3xl p-5 text-center relative" style="border-color: #EC4899;">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-opspink-400 to-opspink-600 text-white font-display font-bold text-3xl flex items-center justify-center shadow-md mb-3">
+                        🔑
+                    </div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-opspink-100 text-opspink-600 font-display font-bold text-xs uppercase tracking-wider mb-2"
+                        contenteditable="true" onblur="notifySaved()">
+                        Lock & Key Master
+                    </span>
+                    <h3 class="font-display font-bold text-xl text-slate-900 mb-1"
+                        contenteditable="true" onblur="notifySaved()">
+                        Agent Cipher
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium"
+                        contenteditable="true" onblur="notifySaved()">
+                        Cracks codes, unlocks vaults & solves fast puzzles.
+                    </p>
+                </div>
+
+                <!-- Member 4: Arena Builder -->
+                <div class="vibrant-card rounded-3xl p-5 text-center relative" style="border-color: #93E9BE;">
+                    <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pista-400 via-opsblue-500 to-opspink-500 text-white font-display font-bold text-3xl flex items-center justify-center shadow-md mb-3">
+                        🧱
+                    </div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-pista-100 text-slate-800 font-display font-bold text-xs uppercase tracking-wider mb-2"
+                        contenteditable="true" onblur="notifySaved()">
+                        Arena Builder
+                    </span>
+                    <h3 class="font-display font-bold text-xl text-slate-900 mb-1"
+                        contenteditable="true" onblur="notifySaved()">
+                        Agent Titan
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium"
+                        contenteditable="true" onblur="notifySaved()">
+                        Constructs fortresses & defends the 3D Arena.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             4. INTERACTIVE TEAM HYPE & STATUS REACTION BOARD
+             ===================================================================== -->
+        <section id="hype" class="vibrant-card rounded-[2rem] p-6 sm:p-8" style="border-color: #F472B6;">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-opspink-100 text-opspink-600 font-display font-bold text-xs uppercase tracking-wider">
+                        Live Squad Energy
+                    </span>
+                    <h2 class="font-display font-bold text-2xl sm:text-3xl text-slate-900 mt-1">
+                        Team Hype & Status Reaction Board
+                    </h2>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                    Tap a reaction button or drop a quick ops status for the team!
+                </p>
+            </div>
+
+            <!-- 4 Interactive Reaction Buttons with Live Counters -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <button onclick="addReaction('ops', 580)"
+                    class="arcade-btn bg-pista-100 hover:bg-pista-200 border-2 border-pista-400 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-1">
+                    <span class="text-2xl">🚀</span>
+                    <span class="font-display font-bold text-sm text-slate-900">Ready for Ops</span>
+                    <span id="count-ops" class="px-2.5 py-0.5 rounded-full bg-white text-pista-600 font-display font-bold text-xs border border-pista-300">12</span>
+                </button>
+
+                <button onclick="addReaction('lock', 660)"
+                    class="arcade-btn bg-opsblue-50 hover:bg-opsblue-100 border-2 border-opsblue-400 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-1">
+                    <span class="text-2xl">🔑</span>
+                    <span class="font-display font-bold text-sm text-slate-900">Lock & Key Win</span>
+                    <span id="count-lock" class="px-2.5 py-0.5 rounded-full bg-white text-opsblue-600 font-display font-bold text-xs border border-opsblue-300">9</span>
+                </button>
+
+                <button onclick="addReaction('war', 740)"
+                    class="arcade-btn bg-opspink-50 hover:bg-opspink-100 border-2 border-opspink-400 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-1">
+                    <span class="text-2xl">⚔️</span>
+                    <span class="font-display font-bold text-sm text-slate-900">War Mode</span>
+                    <span id="count-war" class="px-2.5 py-0.5 rounded-full bg-white text-opspink-600 font-display font-bold text-xs border border-opspink-300">15</span>
+                </button>
+
+                <button onclick="addReaction('gg', 820)"
+                    class="arcade-btn bg-gradient-to-r from-pista-100 via-opsblue-50 to-opspink-100 border-2 border-pista-400 rounded-2xl p-3.5 flex flex-col items-center justify-center gap-1">
+                    <span class="text-2xl">🏆</span>
+                    <span class="font-display font-bold text-sm text-slate-900">GG!</span>
+                    <span id="count-gg" class="px-2.5 py-0.5 rounded-full bg-white text-slate-900 font-display font-bold text-xs border border-slate-300">21</span>
+                </button>
+            </div>
+
+            <!-- Quick Status Post Bar -->
+            <form onsubmit="postSquadStatus(event)" class="flex flex-col sm:flex-row gap-2.5 mb-5">
+                <input id="status-name" type="text" maxlength="20" placeholder="Your Codename (e.g. Agent Fox)"
+                    class="sm:w-52 px-4 py-3 rounded-2xl border-2 border-pista-300 bg-white text-sm font-semibold text-slate-900 focus:outline-none focus:border-opsblue-500">
+                <input id="status-text" type="text" maxlength="90" placeholder="Drop a quick ops update or Lock & Key score..."
+                    class="flex-1 px-4 py-3 rounded-2xl border-2 border-pista-300 bg-white text-sm font-medium text-slate-900 focus:outline-none focus:border-opspink-500">
+                <button type="submit"
+                    class="arcade-btn px-6 py-3 rounded-2xl bg-gradient-to-r from-opspink-500 to-opsblue-600 text-white font-display font-bold text-sm sm:text-base shrink-0">
+                    ⚡ Post Hype
+                </button>
+            </form>
+
+            <!-- Live Feed Items -->
+            <div id="hype-feed" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="bg-pista-50/90 border border-pista-300 rounded-2xl p-3.5 flex items-start gap-3">
+                    <span class="text-xl">👑</span>
+                    <div>
+                        <div class="font-display font-bold text-sm text-slate-900">Agent Alpha <span class="text-xs font-normal text-slate-400">• Just now</span></div>
+                        <p class="text-xs sm:text-sm text-slate-700 font-medium">ONE TEAM, CLEAR PRIORITIES! Call on WhatsApp 9370555921 before tonight's War!</p>
+                    </div>
+                </div>
+                <div class="bg-opsblue-50/90 border border-opsblue-300 rounded-2xl p-3.5 flex items-start gap-3">
+                    <span class="text-xl">🔑</span>
+                    <div>
+                        <div class="font-display font-bold text-sm text-slate-900">Agent Cipher <span class="text-xs font-normal text-slate-400">• 5m ago</span></div>
+                        <p class="text-xs sm:text-sm text-slate-700 font-medium">Cracked the Lock & Key vault in 3 tries! Who can beat my speed?</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             5. LOCK & KEY VAULT MINI-GAME (3-COLOR SEQUENCE CRACKER)
+             ===================================================================== -->
+        <section id="lock-key" class="vibrant-card rounded-[2rem] p-6 sm:p-8 relative overflow-hidden" style="border-color: #3B82F6;">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <div class="lg:col-span-5 space-y-3">
+                    <span class="px-3 py-1 rounded-full bg-opsblue-100 text-opsblue-600 font-display font-bold text-xs uppercase tracking-wider">
+                        🔐 TEAMOPS Mini-Game
+                    </span>
+                    <h2 class="font-display font-bold text-3xl text-slate-900">
+                        Lock & Key Vault Cracker
+                    </h2>
+                    <p class="text-slate-600 text-sm sm:text-base">
+                        Crack the secret 3-key color sequence using <strong class="text-pista-600">Pista</strong>, <strong class="text-opsblue-600">Blue</strong>, and <strong class="text-opspink-600">Pink</strong> keys to unlock the TEAMOPS Treasure Vault!
+                    </p>
+                    <div id="vault-clue" class="p-3.5 rounded-2xl bg-pista-50 border-2 border-pista-300 text-sm font-semibold text-slate-800">
+                        💡 Hint: Tap 3 color keys on the right to test a combination!
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 bg-slate-900 text-white rounded-3xl p-5 sm:p-6 border-4 border-pista-400 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="font-display font-bold text-base sm:text-lg text-pista-300 flex items-center gap-2">
+                            <span id="vault-lock-icon" class="text-2xl">🔒</span>
+                            <span id="vault-status-text">VAULT LOCKED</span>
+                        </div>
+                        <button onclick="resetVaultGame()" class="px-3 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-display font-bold text-pista-300 border border-slate-700">
+                            🔄 New Code
+                        </button>
+                    </div>
+
+                    <!-- 3 Key Slots -->
+                    <div class="grid grid-cols-3 gap-3 mb-5">
+                        <div id="slot-0" class="h-16 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center font-display font-bold text-sm text-slate-400">
+                            KEY 1
+                        </div>
+                        <div id="slot-1" class="h-16 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center font-display font-bold text-sm text-slate-400">
+                            KEY 2
+                        </div>
+                        <div id="slot-2" class="h-16 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center font-display font-bold text-sm text-slate-400">
+                            KEY 3
+                        </div>
+                    </div>
+
+                    <!-- 3 Color Key Buttons -->
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="pressVaultKey('pista')"
+                            class="arcade-btn py-3.5 px-3 rounded-2xl bg-pista-400 hover:bg-pista-300 text-slate-950 font-display font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
+                            <span>🌿</span> Pista Key
+                        </button>
+                        <button onclick="pressVaultKey('blue')"
+                            class="arcade-btn py-3.5 px-3 rounded-2xl bg-opsblue-500 hover:bg-opsblue-400 text-white font-display font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
+                            <span>💎</span> Blue Key
+                        </button>
+                        <button onclick="pressVaultKey('pink')"
+                            class="arcade-btn py-3.5 px-3 rounded-2xl bg-opspink-500 hover:bg-opspink-400 text-white font-display font-bold text-sm sm:text-base flex items-center justify-center gap-1.5">
+                            <span>💖</span> Pink Key
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- =====================================================================
+             6. PLAYABLE 3D MINECRAFT-STYLE BLOCK ARENA (THREE.JS, ZERO SIGN-IN)
+             ===================================================================== -->
+        <section id="arena" class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-pista-200 text-slate-900 font-display font-bold text-xs uppercase tracking-wider">
+                        🎮 Instant Play • No Sign-In Needed
+                    </span>
+                    <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900 mt-1">
+                        TEAMOPS 3D Block Arena
+                    </h2>
+                    <p class="text-slate-600 text-sm sm:text-base">
+                        Build your team fortress in 3D! <strong>Click/Tap</strong> to place blocks, <strong>Shift+Click</strong> (or Remove mode) to break blocks, <strong>Drag</strong> to orbit, and <strong>WASD / Arrows</strong> to fly around.
+                    </p>
+                </div>
+                <div class="text-xs font-display font-bold px-3.5 py-2 rounded-2xl bg-white border-2 border-pista-400 text-slate-800 shadow-sm">
+                    🧱 Blocks Placed: <span id="block-counter" class="text-opsblue-600 text-base">0</span>
+                </div>
+            </div>
+
+            <!-- Arena Container -->
+            <div id="arena-wrapper" class="vibrant-card rounded-[2rem] p-3 sm:p-4 bg-white">
+                <!-- Top Toolbar: Block Palette & Modes -->
+                <div class="flex flex-wrap items-center justify-between gap-2.5 pb-3 mb-3 border-b-2 border-pista-100">
+                    <!-- Block Color Selector -->
+                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <button onclick="selectBlockType('pista', this)" class="block-choice active px-3 py-2 rounded-xl bg-pista-300 border-2 border-slate-900 font-display font-bold text-xs sm:text-sm text-slate-900 shadow-sm">
+                            🌿 Pista
+                        </button>
+                        <button onclick="selectBlockType('blue', this)" class="block-choice px-3 py-2 rounded-xl bg-opsblue-500 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-white shadow-sm">
+                            💙 Blue
+                        </button>
+                        <button onclick="selectBlockType('pink', this)" class="block-choice px-3 py-2 rounded-xl bg-opspink-500 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-white shadow-sm">
+                            💖 Pink
+                        </button>
+                        <button onclick="selectBlockType('gold', this)" class="block-choice px-3 py-2 rounded-xl bg-amber-400 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-slate-900 shadow-sm">
+                            ⭐ Gold
+                        </button>
+                        <button onclick="selectBlockType('stone', this)" class="block-choice px-3 py-2 rounded-xl bg-slate-300 border-2 border-transparent font-display font-bold text-xs sm:text-sm text-slate-900 shadow-sm">
+                            🪨 Stone
+                        </button>
+                    </div>
+
+                    <!-- Action Tools -->
+                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <button id="tool-mode-btn" onclick="toggleBuildMode()"
+                            class="px-3 py-2 rounded-xl bg-pista-100 hover:bg-pista-200 border-2 border-pista-400 font-display font-bold text-xs sm:text-sm text-slate-900 transition">
+                            🔨 Mode: Place
+                        </button>
+                        <button onclick="buildTeamFortressPreset()"
+                            class="px-3 py-2 rounded-xl bg-opsblue-100 hover:bg-opsblue-200 border-2 border-opsblue-400 font-display font-bold text-xs sm:text-sm text-opsblue-600 transition">
+                            🏰 Build HQ Preset
+                        </button>
+                        <button onclick="resetArenaWorld()"
+                            class="px-3 py-2 rounded-xl bg-opspink-100 hover:bg-opspink-200 border-2 border-opspink-400 font-display font-bold text-xs sm:text-sm text-opspink-600 transition">
+                            🧹 Reset
+                        </button>
+                        <button id="focus-btn" onclick="toggleFocusMode()"
+                            class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-display font-bold text-xs sm:text-sm transition">
+                            ⛶ Focus Mode
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3D Viewport Canvas Container -->
+                <div id="three-container" class="w-full h-[380px] sm:h-[460px] rounded-2xl overflow-hidden relative bg-gradient-to-b from-sky-200 via-pista-50 to-white border-2 border-pista-300">
+                    <!-- On-Screen Touch D-Pad for Mobile Camera Orbit -->
+                    <div class="absolute bottom-3 left-3 z-10 flex items-center gap-1.5 bg-white/85 backdrop-blur-sm p-1.5 rounded-2xl border border-pista-300 shadow-md">
+                        <button onclick="nudgeCamera(-0.25, 0)" class="w-9 h-9 rounded-xl bg-pista-100 hover:bg-pista-200 font-bold text-slate-900" title="Rotate Left">◀</button>
+                        <button onclick="nudgeCamera(0, -0.15)" class="w-9 h-9 rounded-xl bg-opsblue-100 hover:bg-opsblue-200 font-bold text-slate-900" title="Tilt Up">▲</button>
+                        <button onclick="nudgeCamera(0, 0.15)" class="w-9 h-9 rounded-xl bg-opsblue-100 hover:bg-opsblue-200 font-bold text-slate-900" title="Tilt Down">▼</button>
+                        <button onclick="nudgeCamera(0.25, 0)" class="w-9 h-9 rounded-xl bg-pista-100 hover:bg-pista-200 font-bold text-slate-900" title="Rotate Right">▶</button>
+                    </div>
+
+                    <div class="absolute top-3 right-3 z-10 px-3 py-1 rounded-xl bg-white/85 backdrop-blur-sm border border-pista-300 text-[11px] font-display font-bold text-slate-700 pointer-events-none">
+                        Drag to Orbit • Scroll to Zoom
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- =====================================================================
+         7. FOOTER
+         ===================================================================== -->
+    <footer class="bg-white/90 backdrop-blur-md border-t-4 border-pista-300 py-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-pista-300 border-2 border-opsblue-500 flex items-center justify-center font-display font-bold text-slate-900">
+                    T
+                </div>
+                <div>
+                    <div class="font-display font-bold text-lg text-slate-900">
+                        TEAMOPS — <span class="text-opspink-600">ONE TEAM, CLEAR PRIORITIES</span>
+                    </div>
+                    <p class="text-xs text-slate-500 font-medium">
+                        Operations • Wars • Tasks • Lock & Key • 3D Block Arena
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-2.5">
+                <a href="https://wa.me/919370555921" target="_blank" rel="noopener noreferrer"
+                    class="arcade-btn px-4 py-2.5 rounded-2xl bg-pista-200 hover:bg-pista-300 border-2 border-pista-500 font-display font-bold text-sm text-slate-900 flex items-center gap-2">
+                    <span>📞</span> Call on WhatsApp: 9370555921
+                </a>
+                <button onclick="copyWhatsAppNumber()"
+                    class="arcade-btn px-3.5 py-2.5 rounded-2xl bg-opsblue-50 hover:bg-opsblue-100 border-2 border-opsblue-400 font-display font-bold text-xs text-opsblue-600">
+                    📋 Copy
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- =====================================================================
+         JAVASCRIPT LOGIC: SOUND EFFECTS, THEME VIBE, LOCK & KEY, AND 3D ARENA
+         ===================================================================== -->
+    <script>
+        /* ---------------------------------------------------------------------
+           1. WEB AUDIO API ARCADE SOUND EFFECTS (NO EXTERNAL AUDIO URLS)
+           --------------------------------------------------------------------- */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function playTone(freq = 520, duration = 0.09, type = 'triangle') {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                // Ignore if browser blocks audio before gesture
+            }
+        }
+
+        function playVictoryFanfare() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((n, idx) => {
+                setTimeout(() => playTone(n, 0.16, 'sine'), idx * 95);
+            });
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) {
+                playTone(660, 0.1);
+                showToast('🔊', 'Arcade Sound Effects ON!');
+            } else {
+                showToast('🔇', 'Sound Effects Muted');
+            }
+        }
+
+        /* ---------------------------------------------------------------------
+           2. TOAST NOTIFICATIONS & CONFETTI CELEBRATION
+           --------------------------------------------------------------------- */
+        let toastTimer = null;
+        function showToast(icon, message) {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-icon').textContent = icon;
+            document.getElementById('toast-msg').textContent = message;
+            box.classList.remove('translate-y-24', 'opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add('translate-y-24', 'opacity-0');
+            }, 2800);
+        }
+
+        function triggerConfetti() {
+            const colors = ['#93E9BE', '#22C55E', '#3B82F6', '#EC4899', '#FBBF24'];
+            for (let i = 0; i < 42; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.animationDelay = (Math.random() * 0.4) + 's';
+                document.body.appendChild(piece);
+                setTimeout(() => piece.remove(), 2900);
+            }
+        }
+
+        /* ---------------------------------------------------------------------
+           3. LIVE THEME VIBE SWITCHER
+           --------------------------------------------------------------------- */
+        function setTheme(themeName, btnEl) {
+            document.body.classList.remove('theme-cyber', 'theme-arcade');
+            if (themeName === 'cyber') document.body.classList.add('theme-cyber');
+            if (themeName === 'arcade') document.body.classList.add('theme-arcade');
+
+            document.querySelectorAll('.theme-btn').forEach(b => {
+                b.className = 'theme-btn px-2.5 py-1 rounded-xl text-xs font-display font-bold text-slate-600 transition';
+            });
+            if (themeName === 'pista') {
+                btnEl.className = 'theme-btn active px-2.5 py-1 rounded-xl text-xs font-display font-bold bg-pista-300 text-slate-900 shadow-sm transition';
+            } else if (themeName === 'cyber') {
+                btnEl.className = 'theme-btn active px-2.5 py-1 rounded-xl text-xs font-display font-bold bg-opsblue-500 text-white shadow-sm transition';
+            } else {
+                btnEl.className = 'theme-btn active px-2.5 py-1 rounded-xl text-xs font-display font-bold bg-opspink-500 text-white shadow-sm transition';
+            }
+            playTone(600, 0.08);
+            showToast('🎨', `Switched to ${themeName.toUpperCase()} Vibe!`);
+        }
+
+        /* ---------------------------------------------------------------------
+           4. WHATSAPP CLIPBOARD COPY & EDITABLE WEBSITE PORTAL
+           --------------------------------------------------------------------- */
+        function copyWhatsAppNumber() {
+            const numberText = '9370555921';
+            const tempInput = document.createElement('input');
+            tempInput.value = numberText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            playTone(760, 0.1);
+            showToast('📋', 'Copied WhatsApp Number: 9370555921');
+        }
+
+        function toggleEditWebsiteUrl() {
+            const box = document.getElementById('url-editor-box');
+            box.classList.toggle('hidden');
+            playTone(540, 0.07);
+        }
+
+        function saveWebsiteUrl() {
+            const input = document.getElementById('website-url-input');
+            let val = input.value.trim();
+            if (!val) return;
+            if (!val.startsWith('http://') && !val.startsWith('https://')) {
+                val = 'https://' + val;
+            }
+            document.getElementById('website-url-display').textContent = val;
+            document.getElementById('website-launch-link').href = val;
+            document.getElementById('url-editor-box').classList.add('hidden');
+            playTone(720, 0.1);
+            showToast('🌐', 'TEAMOPS Website Link Updated!');
+        }
+
+        function notifySaved() {
+            playTone(640, 0.07);
+            showToast('✅', 'Squad Roster Updated!');
+        }
+
+        /* ---------------------------------------------------------------------
+           5. TEAM HYPE & STATUS REACTION BOARD
+           --------------------------------------------------------------------- */
+        const reactionCounts = { ops: 12, lock: 9, war: 15, gg: 21 };
+
+        function addReaction(key, freq) {
+            reactionCounts[key]++;
+            document.getElementById(`count-${key}`).textContent = reactionCounts[key];
+            playTone(freq, 0.09);
+            showToast('🔥', 'Team Hype Boosted!');
+        }
+
+        function postSquadStatus(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('status-name');
+            const textInput = document.getElementById('status-text');
+            const name = nameInput.value.trim() || 'TEAMOPS Agent';
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            const feed = document.getElementById('hype-feed');
+            const card = document.createElement('div');
+            card.className = 'bg-opspink-50/90 border border-opspink-300 rounded-2xl p-3.5 flex items-start gap-3';
+            card.innerHTML = `
+                <span class="text-xl">⚡</span>
+                <div>
+                    <div class="font-display font-bold text-sm text-slate-900">${escapeHtml(name)} <span class="text-xs font-normal text-slate-400">• Just now</span></div>
+                    <p class="text-xs sm:text-sm text-slate-700 font-medium">${escapeHtml(text)}</p>
+                </div>
+            `;
+            feed.prepend(card);
+            textInput.value = '';
+            playTone(780, 0.12);
+            showToast('📢', 'Hype Status Posted!');
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        /* ---------------------------------------------------------------------
+           6. LOCK & KEY VAULT MINI-GAME
+           --------------------------------------------------------------------- */
+        const keyStyles = {
+            pista: { label: '🌿 PISTA', bg: 'bg-pista-400 text-slate-950 border-pista-200', freq: 523 },
+            blue:  { label: '💎 BLUE',  bg: 'bg-opsblue-500 text-white border-opsblue-300', freq: 659 },
+            pink:  { label: '💖 PINK',  bg: 'bg-opspink-500 text-white border-opspink-300', freq: 784 }
+        };
+        let secretCode = ['pista', 'blue', 'pink'];
+        let currentGuess = [];
+
+        function generateNewSecretCode() {
+            const pool = ['pista', 'blue', 'pink'];
+            secretCode = [
+                pool[Math.floor(Math.random() * pool.length)],
+                pool[Math.floor(Math.random() * pool.length)],
+                pool[Math.floor(Math.random() * pool.length)]
+            ];
+        }
+
+        function pressVaultKey(color) {
+            if (currentGuess.length >= 3) return;
+            currentGuess.push(color);
+            const idx = currentGuess.length - 1;
+            const slot = document.getElementById(`slot-${idx}`);
+            slot.className = `h-16 rounded-2xl border-2 flex items-center justify-center font-display font-bold text-sm shadow-md ${keyStyles[color].bg}`;
+            slot.textContent = keyStyles[color].label;
+            playTone(keyStyles[color].freq, 0.1);
+
+            if (currentGuess.length === 3) {
+                evaluateVaultGuess();
+            }
+        }
+
+        function evaluateVaultGuess() {
+            let exactMatches = 0;
+            for (let i = 0; i < 3; i++) {
+                if (currentGuess[i] === secretCode[i]) exactMatches++;
+            }
+
+            const clueEl = document.getElementById('vault-clue');
+            const lockIcon = document.getElementById('vault-lock-icon');
+            const statusText = document.getElementById('vault-status-text');
+
+            if (exactMatches === 3) {
+                lockIcon.textContent = '🔓';
+                statusText.textContent = 'VAULT UNLOCKED! VICTORY!';
+                clueEl.innerHTML = '🏆 <strong>BOOM!</strong> You cracked the TEAMOPS Lock & Key Vault! Click <em>New Code</em> to play again.';
+                playVictoryFanfare();
+                triggerConfetti();
+                showToast('🔓', 'Lock & Key Vault Unlocked!');
+            } else {
+                clueEl.innerHTML = `🔍 <strong>${exactMatches} of 3</strong> keys in the exact right slot! Try again...`;
+                playTone(260, 0.18, 'sawtooth');
+                setTimeout(() => {
+                    clearSlotsOnly();
+                }, 900);
+            }
+        }
+
+        function clearSlotsOnly() {
+            currentGuess = [];
+            for (let i = 0; i < 3; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                slot.className = 'h-16 rounded-2xl bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center font-display font-bold text-sm text-slate-400';
+                slot.textContent = `KEY ${i + 1}`;
+            }
+        }
+
+        function resetVaultGame() {
+            generateNewSecretCode();
+            clearSlotsOnly();
+            document.getElementById('vault-lock-icon').textContent = '🔒';
+            document.getElementById('vault-status-text').textContent = 'VAULT LOCKED';
+            document.getElementById('vault-clue').innerHTML = '💡 New secret 3-key code generated! Tap 3 keys to crack it.';
+            playTone(600, 0.09);
+        }
+
+        /* ---------------------------------------------------------------------
+           7. PLAYABLE 3D MINECRAFT-STYLE BLOCK ARENA (THREE.JS)
+           --------------------------------------------------------------------- */
+        let scene, camera, renderer, raycaster, mouse;
+        let groundPlane;
+        const placedBlocks = [];
+        let selectedBlockType = 'pista';
+        let removeMode = false;
+
+        // Orbit Camera Spherical Coordinates
+        let camTheta = Math.PI / 4;
+        let camPhi = Math.PI / 3.2;
+        let camRadius = 18;
+        let camTarget = new THREE.Vector3(0, 1, 0);
+        let isDragging = false;
+        let dragMoved = false;
+        let prevPointer = { x: 0, y: 0 };
+
+        const blockColors = {
+            pista: 0x5ED99E,
+            blue:  0x3B82F6,
+            pink:  0xEC4899,
+            gold:  0xFBBF24,
+            stone: 0x94A3B8
+        };
+
+        function init3DArena() {
+            const container = document.getElementById('three-container');
+            if (!container || typeof THREE === 'undefined') return;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xE8FBF1);
+            scene.fog = new THREE.Fog(0xE8FBF1, 24, 58);
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+            updateCameraPosition();
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.78);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
+            dirLight.position.set(14, 24, 12);
+            scene.add(dirLight);
+
+            // Pista-Tinted Grid Floor
+            const gridSize = 20;
+            const gridHelper = new THREE.GridHelper(gridSize, gridSize, 0x22C55E, 0x93E9BE);
+            scene.add(gridHelper);
+
+            const groundGeo = new THREE.PlaneGeometry(gridSize, gridSize);
+            groundGeo.rotateX(-Math.PI / 2);
+            const groundMat = new THREE.MeshLambertMaterial({ color: 0xF2FDF7 });
+            groundPlane = new THREE.Mesh(groundGeo, groundMat);
+            scene.add(groundPlane);
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            // Build Starter TEAMOPS HQ Fortress
+            buildTeamFortressPreset(true);
+
+            // Pointer Events for Orbit + Block Place/Remove
+            const dom = renderer.domElement;
+            dom.addEventListener('pointerdown', (e) => {
+                isDragging = true;
+                dragMoved = false;
+                prevPointer = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('pointermove', (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - prevPointer.x;
+                const dy = e.clientY - prevPointer.y;
+                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) dragMoved = true;
+                camTheta -= dx * 0.008;
+                camPhi = Math.max(0.22, Math.min(Math.PI / 2.08, camPhi - dy * 0.008));
+                prevPointer = { x: e.clientX, y: e.clientY };
+                updateCameraPosition();
+            });
+
+            window.addEventListener('pointerup', (e) => {
+                if (isDragging && !dragMoved) {
+                    handleArenaClick(e);
+                }
+                isDragging = false;
+            });
+
+            dom.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camRadius = Math.max(7, Math.min(34, camRadius + e.deltaY * 0.015));
+                updateCameraPosition();
+            }, { passive: false });
+
+            // WASD / Arrow Key Camera Panning
+            window.addEventListener('keydown', (e) => {
+                if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable) return;
+                const step = 0.7;
+                if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') camTarget.z -= step;
+                if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') camTarget.z += step;
+                if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') camTarget.x -= step;
+                if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') camTarget.x += step;
+                updateCameraPosition();
+            });
+
+            window.addEventListener('resize', resizeArenaCanvas);
+
+            animateArena();
+        }
+
+        function updateCameraPosition() {
+            camera.position.x = camTarget.x + camRadius * Math.sin(camPhi) * Math.sin(camTheta);
+            camera.position.y = camTarget.y + camRadius * Math.cos(camPhi);
+            camera.position.z = camTarget.z + camRadius * Math.sin(camPhi) * Math.cos(camTheta);
+            camera.lookAt(camTarget);
+        }
+
+        function nudgeCamera(dTheta, dPhi) {
+            camTheta += dTheta;
+            camPhi = Math.max(0.22, Math.min(Math.PI / 2.08, camPhi + dPhi));
+            updateCameraPosition();
+            playTone(460, 0.05);
+        }
+
+        function addVoxelBlock(x, y, z, type) {
+            const geo = new THREE.BoxGeometry(1, 1, 1);
+            const mat = new THREE.MeshLambertMaterial({ color: blockColors[type] || 0x5ED99E });
+            const cube = new THREE.Mesh(geo, mat);
+            cube.position.set(x, y, z);
+
+            // Crisp Outline Edges for Minecraft Block Feel
+            const edges = new THREE.EdgesGeometry(geo);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x0F172A, transparent: true, opacity: 0.25 }));
+            cube.add(line);
+
+            scene.add(cube);
+            placedBlocks.push(cube);
+            updateBlockCounter();
+        }
+
+        function handleArenaClick(e) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const targets = [...placedBlocks, groundPlane];
+            const intersects = raycaster.intersectObjects(targets, false);
+
+            if (intersects.length > 0) {
+                const hit = intersects[0];
+                const shouldRemove = removeMode || e.shiftKey;
+
+                if (shouldRemove) {
+                    if (hit.object !== groundPlane) {
+                        scene.remove(hit.object);
+                        const idx = placedBlocks.indexOf(hit.object);
+                        if (idx > -1) placedBlocks.splice(idx, 1);
+                        updateBlockCounter();
+                        playTone(320, 0.07);
+                    }
+                } else {
+                    const pos = hit.point.clone().add(hit.face.normal.clone().multiplyScalar(0.5));
+                    const gx = Math.floor(pos.x) + 0.5;
+                    const gy = Math.max(0.5, Math.floor(pos.y) + 0.5);
+                    const gz = Math.floor(pos.z) + 0.5;
+
+                    if (Math.abs(gx) < 10 && Math.abs(gz) < 10 && gy < 16) {
+                        addVoxelBlock(gx, gy, gz, selectedBlockType);
+                        playTone(620, 0.07);
+                    }
+                }
+            }
+        }
+
+        function selectBlockType(type, btnEl) {
+            selectedBlockType = type;
+            removeMode = false;
+            document.getElementById('tool-mode-btn').textContent = '🔨 Mode: Place';
+            document.querySelectorAll('.block-choice').forEach(b => {
+                b.classList.remove('border-slate-900', 'scale-105');
+                b.classList.add('border-transparent');
+            });
+            btnEl.classList.remove('border-transparent');
+            btnEl.classList.add('border-slate-900', 'scale-105');
+            playTone(550, 0.06);
+        }
+
+        function toggleBuildMode() {
+            removeMode = !removeMode;
+            const btn = document.getElementById('tool-mode-btn');
+            btn.textContent = removeMode ? '⛏️ Mode: Break' : '🔨 Mode: Place';
+            playTone(480, 0.07);
+        }
+
+        function resetArenaWorld(silent = false) {
+            while (placedBlocks.length > 0) {
+                const b = placedBlocks.pop();
+                scene.remove(b);
+            }
+            updateBlockCounter();
+            if (!silent) {
+                playTone(380, 0.09);
+                showToast('🧹', '3D Arena Cleared!');
+            }
+        }
+
+        function buildTeamFortressPreset(silent = false) {
+            resetArenaWorld(true);
+            // Build a vibrant TEAMOPS Pista, Blue & Pink HQ Tower
+            for (let x = -2; x <= 2; x++) {
+                for (let z = -2; z <= 2; z++) {
+                    addVoxelBlock(x + 0.5, 0.5, z + 0.5, 'pista');
+                }
+            }
+            // Corner Pillars in Blue & Pink
+            const corners = [[-2, -2], [2, -2], [-2, 2], [2, 2]];
+            corners.forEach(([cx, cz], i) => {
+                const col = i % 2 === 0 ? 'blue' : 'pink';
+                addVoxelBlock(cx + 0.5, 1.5, cz + 0.5, col);
+                addVoxelBlock(cx + 0.5, 2.5, cz + 0.5, col);
+                addVoxelBlock(cx + 0.5, 3.5, cz + 0.5, 'gold');
+            });
+            // Center Beacon
+            addVoxelBlock(0.5, 1.5, 0.5, 'pink');
+            addVoxelBlock(0.5, 2.5, 0.5, 'blue');
+            addVoxelBlock(0.5, 3.5, 0.5, 'gold');
+
+            if (!silent) {
+                playVictoryFanfare();
+                showToast('🏰', 'TEAMOPS HQ Fortress Built!');
+            }
+        }
+
+        function updateBlockCounter() {
+            document.getElementById('block-counter').textContent = placedBlocks.length;
+        }
+
+        function toggleFocusMode() {
+            const wrapper = document.getElementById('arena-wrapper');
+            const btn = document.getElementById('focus-btn');
+            wrapper.classList.toggle('focus-mode');
+            const isFocus = wrapper.classList.contains('focus-mode');
+            btn.textContent = isFocus ? '✕ Exit Focus' : '⛶ Focus Mode';
+            setTimeout(resizeArenaCanvas, 50);
+            playTone(640, 0.08);
+        }
+
+        function resizeArenaCanvas() {
+            const container = document.getElementById('three-container');
+            if (!container || !renderer || !camera) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        function animateArena() {
+            requestAnimationFrame(animateArena);
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        window.onload = function () {
+            generateNewSecretCode();
+            init3DArena();
+        };
+    </script>
+</body>
+</html>
